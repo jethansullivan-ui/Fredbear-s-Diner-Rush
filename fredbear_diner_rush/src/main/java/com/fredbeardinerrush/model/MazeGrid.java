@@ -8,7 +8,7 @@ public class MazeGrid implements IMaze, IMazeGridWriter {
     private final int width;
     private final int height;
     private final int[][] grid;
-    private final int[][] originalGrid; // Saved for resets/replays
+    private final int[][] originalGrid;
     private int p1RemainingDots;
     private int p2RemainingDots;
 
@@ -69,6 +69,13 @@ public class MazeGrid implements IMaze, IMazeGridWriter {
             return true;
         int val = grid[pos.x()][pos.y()];
         return val == 1 || val == 4 || val == 5;
+    }
+
+    @Override
+    public boolean isSpringWall(Position pos) {
+        if (pos.x() < 0 || pos.x() >= width || pos.y() < 0 || pos.y() >= height)
+            return false;
+        return grid[pos.x()][pos.y()] == 4; // 4 represents '@' (Springbonnie wall)
     }
 
     @Override
