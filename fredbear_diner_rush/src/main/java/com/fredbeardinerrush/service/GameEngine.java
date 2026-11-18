@@ -11,13 +11,16 @@ public class GameEngine {
     private boolean gameOver;
     private String winnerText;
 
-    // Tally tracking & persistence
     private int p1Wins;
     private int p2Wins;
     private final ITallyPersistence persistence;
 
     private final Position p1Spawn;
     private final Position p2Spawn;
+
+    // Movement tracking flags for audio triggers
+    private boolean p1MovedLastTick = false;
+    private boolean p2MovedLastTick = false;
 
     public GameEngine(int width, int height, IMazeLoader loader, ITallyPersistence persistence) {
         this.maze = new MazeGrid(width, height, loader);
@@ -29,7 +32,6 @@ public class GameEngine {
         this.gameOver = false;
         this.winnerText = "";
 
-        // Load saved tally
         this.persistence = persistence;
         if (this.persistence != null) {
             int[] loadedTallies = this.persistence.loadTally();
@@ -41,12 +43,29 @@ public class GameEngine {
         }
     }
 
-    public void update() {
+    public synchronized void updateParallel() {
         if (gameOver)
             return;
 
-        player1.move(maze);
-        player2.move(maze);
+        Position oldP1Pos = player1.getPosition();
+        Position oldP2Pos = player2.getPosition();
+
+        Thread t1 = new Thread(() -> player1.move(maze));
+        Thread t2 = new Thread(() -> player2.move(maze));
+
+        t1.start();
+        t2.start();
+
+        try {
+            t1.join();
+            t2.join();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
+        // Check if positions actually changed (meaning they successfully moved)
+        p1MovedLastTick = !player1.getPosition().equals(oldP1Pos);
+        p2MovedLastTick = !player2.getPosition().equals(oldP2Pos);
 
         if (maze.getRemainingDots(true) == 0) {
             gameOver = true;
@@ -75,6 +94,8 @@ public class GameEngine {
         player2.setDirection(com.fredbeardinerrush.model.Direction.UP);
         gameOver = false;
         winnerText = "";
+        p1MovedLastTick = false;
+        p2MovedLastTick = false;
     }
 
     public IMaze getMaze() {
@@ -103,5 +124,13 @@ public class GameEngine {
 
     public int getP2Wins() {
         return p2Wins;
+    }
+
+    public boolean didPlayer1Move() {
+        return p1MovedLastTick;
+    }
+
+    public boolean didPlayer2Move() {
+        return p2MovedLastTick;
     }
 }

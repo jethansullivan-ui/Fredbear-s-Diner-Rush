@@ -5,6 +5,8 @@ import com.fredbeardinerrush.model.Position;
 public interface IMaze {
     boolean isWall(Position pos);
 
+    boolean isSpringWall(Position pos);
+
     boolean hasDot(Position pos, boolean isPlayer1Side);
 
     boolean hasCupcake(Position pos, boolean isPlayer1Side);
