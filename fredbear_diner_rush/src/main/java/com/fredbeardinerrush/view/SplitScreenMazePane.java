@@ -65,8 +65,8 @@ public class SplitScreenMazePane extends Canvas {
             for (int y = 0; y < maze.getHeight(); y++) {
                 Position pos = new Position(x, y);
                 if (maze.isWall(pos)) {
-                    // Top half is Springbonnie's territory, bottom half is Fredbear's
-                    Image activeWall = (y <= midY) ? springWall : fredWall;
+                    // Render Springbonnie's wall for '@' and Fredbear's wall for '#'
+                    Image activeWall = maze.isSpringWall(pos) ? springWall : fredWall;
                     if (activeWall != null) {
                         gc.drawImage(activeWall, x * tileSize, y * tileSize, tileSize, tileSize);
                     } else {
@@ -74,8 +74,6 @@ public class SplitScreenMazePane extends Canvas {
                         gc.fillRect(x * tileSize, y * tileSize, tileSize, tileSize);
                     }
                 } else if (maze.hasDot(pos, y <= midY ? false : true)) {
-                    // Check dots based on horizontal boundary (top = Springbonnie [P2], bottom =
-                    // Fredbear [P1])
                     gc.setFill(Color.LIGHTYELLOW);
                     gc.fillOval(x * tileSize + tileSize / 3.0, y * tileSize + tileSize / 3.0, tileSize / 3.0,
                             tileSize / 3.0);
